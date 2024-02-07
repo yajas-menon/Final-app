@@ -17,7 +17,7 @@ router.post("/save/vendors", async (req, res) => {
 router.get("/get/vendors", async (req, res) => {
   let obj = {};
   if (req.query.id) {
-    obj.id = req.query.id;
+    obj._id = req.query.id;
   }
   try {
     const vendor = await Vendor.find(obj);
