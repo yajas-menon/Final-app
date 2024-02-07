@@ -97,16 +97,6 @@ router.put("/addAnswers/:id", async (req, res) => {
     });
 });
 
-router.get("/get/user",async(req,res)=>{
-  try{
-
-    const users = await Users.find({});
-    res.json(users);
-  }catch(err){
-    res.status(500).json({message:err.message});
-  }
-})
-
 router.get("/getUsers", async (req, res) => {
   const id = req.query.id;
   await Users.findById(id)
