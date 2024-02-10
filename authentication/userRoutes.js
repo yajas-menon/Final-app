@@ -114,7 +114,7 @@ router.get("/getuserstemplateWise", async (req, res) => {
     obj.template_id = req.query.template_id;
   }
 
-  let questions = await Questions?.find(obj).catch((err) => {
+  let questions = await Questions.find(obj).catch((err) => {
     console.log(err);
     return res.status(501).json({
       success: false,
