@@ -1,4 +1,5 @@
 const Users = require("../models/User.js");
+const Questions = require("../models/Question.js");
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
@@ -77,9 +78,7 @@ router.post("/login", async (req, res) => {
 router.put("/addAnswers/:id", async (req, res) => {
   const id = req.params.id;
   const questions = req.body;
-  // questions?.forEach((item, key) => {
-  //   item.file = item.file.split(",")[1];
-  // });
+
   await Users.findOneAndUpdate({ _id: id }, { $set: { questions: questions } })
     .then((data) => {
       return res.status(200).json({
@@ -88,7 +87,7 @@ router.put("/addAnswers/:id", async (req, res) => {
       });
     })
     .catch((err) => {
-      // console.log(err);
+      console.log(err);
       return res.status(501).json({
         success: false,
         error: err,
@@ -97,15 +96,72 @@ router.put("/addAnswers/:id", async (req, res) => {
     });
 });
 
-router.get("/get/user",async(req,res)=>{
-  try{
-
+router.get("/get/user", async (req, res) => {
+  try {
     const users = await Users.find({});
     res.json(users);
-  }catch(err){
-    res.status(500).json({message:err.message});
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
-})
+});
+
+router.get("/getuserstemplateWise", async (req, res) => {
+  let obj = {};
+  if (req.query.vendor_id) {
+    obj.vendor_id = req.query.vendor_id;
+  }
+  if (req.query.template_id) {
+    obj.template_id = req.query.template_id;
+  }
+
+  let questions = await Questions?.find(obj).catch((err) => {
+    console.log(err);
+    return res.status(501).json({
+      success: false,
+      message: "Something went wrong",
+    });
+  });
+  let finalData = [];
+
+  for (let i of questions) {
+    await Users.find({
+      $and: [
+        { "questions.question_id": i?._id },
+        { "questions.status": "ACTIVE" },
+      ],
+    })
+      .then(async (data) => {
+        console.log(data);
+        for (let j of data) {
+          let questions = j?.questions?.filter(
+            (s) => s.question_id == i?._id && s.status == "ACTIVE"
+          );
+          for (let k of questions) {
+            let obj = {
+              template_id: i?.template_id,
+              Question: k?.Question,
+              answer: k?.answer,
+              EvidenceBinary: k?.EvidenceBinary,
+            };
+            finalData.push(obj);
+          }
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        return res.status(501).json({
+          success: false,
+          message: "Something went wrong",
+        });
+      });
+  }
+  console.log(finalData);
+  return res.status(200).json({
+    success: true,
+    data: finalData,
+    message: "Successfully Sent Details",
+  });
+});
 
 router.get("/getUsers", async (req, res) => {
   const id = req.query.id;

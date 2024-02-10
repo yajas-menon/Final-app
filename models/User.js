@@ -21,8 +21,11 @@ const UsersSchema = new mongoose.Schema(
     questions: [
       {
         question_id: String,
-        answer: String,
-        file: String,
+        RequestID: Number,
+        Answer: String,
+        EvidenceBinary: String,
+        comment: String,
+        status: String,
       },
     ],
   },

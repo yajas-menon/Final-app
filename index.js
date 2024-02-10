@@ -40,6 +40,7 @@ const authRoutes = require("./authentication/userRoutes");
 const questionRoute = require("./authentication/questionRoute");
 const vendorRoute = require("./authentication/vendorRoute");
 const templateRoute = require("./authentication/templateRoutes");
+const requestRoute = require("./authentication/requestRoutes");
 
 // ... other imports
 app.use("/api/auth", authRoutes);
