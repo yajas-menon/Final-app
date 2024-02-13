@@ -1,9 +1,11 @@
 const Users = require("../models/User.js");
 const Questions = require("../models/Question.js");
+const Requests = require("../models/request.model.js")
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { Types: { ObjectId } } = require('mongoose');
 
 // Generate JWT token
 const generateAccessToken = (userId) => {
@@ -29,6 +31,7 @@ router.post("/register", async (req, res) => {
       email: req.body.email,
       password,
       role: req.body.role,
+      vendor_id:req.body.vendor_id
     });
 
     await newUser.save();
@@ -56,11 +59,12 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ msg: "Wrong password." });
     }
 
+    console.log(user)
     const questions = user?.questions?.map((item, key) => {
-      let x = item.file.toString("base64");
+      let x = item?.EvidenceBinary?.toString("base64");
       return {
         question_id: item.question_id,
-        answer: item.answer,
+        answer: item.Answer,
         file: x,
       };
     });
@@ -80,10 +84,27 @@ router.put("/addAnswers/:id", async (req, res) => {
   const questions = req.body;
 
   await Users.findOneAndUpdate({ _id: id }, { $set: { questions: questions } })
-    .then((data) => {
-      return res.status(200).json({
-        success: true,
-        message: "Successfully Updated Details",
+    .then(async (data) => {
+      let obj = {
+        status:"PENDING",
+        user_id:id,
+        template_id:req.query.template_id,
+        vendor_id:req.query.vendor_id,
+        requestID:req.query.requestID,
+        createdAt:new Date()
+      }
+      await Requests.create(obj).then((data1)=>{
+        return res.status(200).json({
+          success: true,
+          message: "Successfully Updated Details",
+        });
+      }).catch((err) => {
+        console.log(err);
+        return res.status(501).json({
+          success: false,
+          error: err,
+          message: "Something went wrong",
+        });
       });
     })
     .catch((err) => {
@@ -131,7 +152,6 @@ router.get("/getuserstemplateWise", async (req, res) => {
       ],
     })
       .then(async (data) => {
-        console.log(data);
         for (let j of data) {
           let questions = j?.questions?.filter(
             (s) => s.question_id == i?._id && s.status == "ACTIVE"
@@ -139,9 +159,11 @@ router.get("/getuserstemplateWise", async (req, res) => {
           for (let k of questions) {
             let obj = {
               template_id: i?.template_id,
-              Question: k?.Question,
-              answer: k?.answer,
+              Question: k?.question_id,
+              answer: k?.Answer,
               EvidenceBinary: k?.EvidenceBinary,
+              userName:j?.name,
+              status:k?.status
             };
             finalData.push(obj);
           }
@@ -155,7 +177,7 @@ router.get("/getuserstemplateWise", async (req, res) => {
         });
       });
   }
-  console.log(finalData);
+  // console.log(finalData);
   return res.status(200).json({
     success: true,
     data: finalData,

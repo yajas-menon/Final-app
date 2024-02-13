@@ -3,16 +3,26 @@ const Schema = require("mongoose");
 
 const requestSchema = new mongoose.Schema({
   template_id: {
-    type: { type: Schema.Types.ObjectId, ref: "Template" },
-    required: true,
+    type:String
   },
   user_id: {
-    type: { type: Schema.Types.ObjectId, ref: "Users" },
-    required: true,
+    type:String
+  },
+  vendor_id:{
+    type:String
+  },
+  requestID:{
+    type:String
   },
   status: {
     type: String,
   },
+  createdAt:{
+    type:Date
+  },
+  updatedAt:{
+    type:Date
+  }
 });
 
 module.exports = mongoose.model("Requests", requestSchema);

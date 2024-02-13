@@ -18,6 +18,9 @@ const UsersSchema = new mongoose.Schema(
     role: {
       type: String,
     },
+    vendor_id:{
+      type:String
+    },
     questions: [
       {
         question_id: String,

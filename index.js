@@ -47,3 +47,5 @@ app.use("/api/auth", authRoutes);
 app.use("/api/auth", questionRoute);
 app.use("/api/auth", vendorRoute);
 app.use("/api/auth", templateRoute);
+app.use("/api/auth", requestRoute);
+

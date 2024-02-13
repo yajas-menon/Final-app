@@ -35,7 +35,6 @@ router.get("/get/Template", async (req, res) => {
           console.log(err);
         });
     }
-    console.log(arr);
     res.json(arr);
   } catch (error) {
     console.error(error);
