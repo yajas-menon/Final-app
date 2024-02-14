@@ -1,11 +1,13 @@
 const Users = require("../models/User.js");
 const Questions = require("../models/Question.js");
-const Requests = require("../models/request.model.js")
+const Requests = require("../models/request.model.js");
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { Types: { ObjectId } } = require('mongoose');
+const {
+  Types: { ObjectId },
+} = require("mongoose");
 
 // Generate JWT token
 const generateAccessToken = (userId) => {
@@ -31,7 +33,7 @@ router.post("/register", async (req, res) => {
       email: req.body.email,
       password,
       role: req.body.role,
-      vendor_id:req.body.vendor_id
+      vendor_id: req.body.vendor_id,
     });
 
     await newUser.save();
@@ -59,9 +61,9 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ msg: "Wrong password." });
     }
 
-    console.log(user)
+    console.log(user);
     const questions = user?.questions?.map((item, key) => {
-      let x = item?.EvidenceBinary?.toString("base64");
+      let x = item.file?.toString("base64");
       return {
         question_id: item.question_id,
         answer: item.Answer,
@@ -86,26 +88,28 @@ router.put("/addAnswers/:id", async (req, res) => {
   await Users.findOneAndUpdate({ _id: id }, { $set: { questions: questions } })
     .then(async (data) => {
       let obj = {
-        status:"PENDING",
-        user_id:id,
-        template_id:req.query.template_id,
-        vendor_id:req.query.vendor_id,
-        requestID:req.query.requestID,
-        createdAt:new Date()
-      }
-      await Requests.create(obj).then((data1)=>{
-        return res.status(200).json({
-          success: true,
-          message: "Successfully Updated Details",
+        status: "PENDING",
+        user_id: id,
+        template_id: req.query.template_id,
+        vendor_id: req.query.vendor_id,
+        requestID: req.query.requestID,
+        createdAt: new Date(),
+      };
+      await Requests.create(obj)
+        .then((data1) => {
+          return res.status(200).json({
+            success: true,
+            message: "Successfully Updated Details",
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+          return res.status(501).json({
+            success: false,
+            error: err,
+            message: "Something went wrong",
+          });
         });
-      }).catch((err) => {
-        console.log(err);
-        return res.status(501).json({
-          success: false,
-          error: err,
-          message: "Something went wrong",
-        });
-      });
     })
     .catch((err) => {
       console.log(err);
@@ -162,8 +166,8 @@ router.get("/getuserstemplateWise", async (req, res) => {
               Question: k?.question_id,
               answer: k?.Answer,
               EvidenceBinary: k?.EvidenceBinary,
-              userName:j?.name,
-              status:k?.status
+              userName: j?.name,
+              status: k?.status,
             };
             finalData.push(obj);
           }
