@@ -18,7 +18,6 @@ const generateAccessToken = (userId) => {
 
 // POST /api/auth/register
 router.post("/register", async (req, res) => {
-  console.log(req.body);
   try {
     const existingUser = await Users.findOne({ email: req.body.email });
     if (existingUser) {
@@ -51,7 +50,7 @@ router.post("/register", async (req, res) => {
 // POST /api/auth/login
 router.post("/login", async (req, res) => {
   try {
-    const user = await Users.findOne({ email: req.body.email });
+    let user = await Users.findOne({ email: req.body.email });
     if (!user) {
       return res.status(404).json({ msg: "User not found." });
     }
@@ -61,22 +60,24 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ msg: "Wrong password." });
     }
 
-    console.log(user);
     const questions = user?.questions?.map((item, key) => {
-      let x = item.file?.toString("base64");
+      let x = item.EvidenceBinary?.toString("base64");
       return {
         question_id: item.question_id,
         answer: item.Answer,
         file: x,
+        requestID: item?.RequestID,
+        status: item?.status,
       };
     });
-    user.questions = questions;
+    user._doc.questions = questions;
+    user = { ...user._doc, accessToken: generateAccessToken(user._id) };
     res.status(200).json({
       msg: "Successfully logged in.",
-      accessToken: generateAccessToken(user._id),
       data: user,
     });
   } catch (err) {
+    console.log(err);
     res.status(500).json({ err: err.message });
   }
 });
@@ -85,7 +86,7 @@ router.put("/addAnswers/:id", async (req, res) => {
   const id = req.params.id;
   const questions = req.body;
 
-  await Users.findOneAndUpdate({ _id: id }, { $set: { questions: questions } })
+  await Users.findOneAndUpdate({ _id: id }, { $push: { questions: questions } })
     .then(async (data) => {
       let obj = {
         status: "PENDING",
