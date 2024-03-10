@@ -166,6 +166,7 @@ router.get("/getuserstemplateWise", async (req, res) => {
               template_id: i?.template_id,
               Question: k?.question_id,
               answer: k?.Answer,
+              user_question_id: k?._id,
               EvidenceBinary: k?.EvidenceBinary,
               userName: j?.name,
               status: k?.status,
