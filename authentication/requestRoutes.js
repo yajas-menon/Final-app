@@ -2,6 +2,7 @@ const Requests = require("../models/request.model.js");
 const express = require("express");
 const User = require("../models/User.js");
 const router = express.Router();
+const { ObjectId } = require("mongodb");
 const Questions = require("../models/Question.js");
 
 router.get("/getRequests", async (req, res) => {
@@ -69,6 +70,7 @@ router.post("/updateRequests", async (req, res) => {
 
 router.post("/updateRequests1", async (req, res) => {
   let { user_id, user_question_id, status, template_id } = req.body;
+  console.log(user_id);
   await User.findOneAndUpdate(
     {
       _id: user_id,
@@ -80,9 +82,10 @@ router.post("/updateRequests1", async (req, res) => {
     { raw: true }
   )
     .then(async (data) => {
+      let id = new ObjectId(user_id);
       const user = await User.aggregate([
         {
-          $match: { _id: user_id },
+          $match: { _id: id },
         },
         {
           $unwind: "$questions",
@@ -91,7 +94,10 @@ router.post("/updateRequests1", async (req, res) => {
           $match: { "questions.template_id": template_id },
         },
         {
-          $group: { _id: "$_id", questions: { $push: "$questions" } },
+          $group: {
+            _id: "$_id",
+            questions: { $push: "$questions" },
+          },
         },
         {
           $project: { _id: 0, user_id: "$_id", questions: 1 },
@@ -99,8 +105,7 @@ router.post("/updateRequests1", async (req, res) => {
       ]).catch((err) => {
         console.log(err);
       });
-      console.log(user);
-      let noofApprovedQuestions = user?.questions?.filter(
+      let noofApprovedQuestions = user[0]?.questions?.filter(
         (s) => s.status == "ACTIVE" || s.status == "REJECTED"
       )?.length;
       if (noofApprovedQuestions == 0) {
@@ -112,12 +117,16 @@ router.post("/updateRequests1", async (req, res) => {
           console.log(err);
         });
         await Requests.updateOne(
-          { _id: request?._id },
+          { _id: request[0]?._id },
           { $set: { status: "APPROVED" } }
         ).catch((err) => {
           console.log(err);
         });
       }
+      return res.status(200).json({
+        success: true,
+        message: "Successfully Updated Details",
+      });
     })
     .catch((err) => {
       console.log(err);
