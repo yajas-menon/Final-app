@@ -96,7 +96,8 @@ router.put("/addAnswers/:id", async (req, res) => {
         requestID: req.query.requestID,
         createdAt: new Date(),
       };
-      await Requests.create(obj)
+
+      await Requests.updateOne(obj, { upsert: true })
         .then((data1) => {
           return res.status(200).json({
             success: true,

@@ -3,7 +3,6 @@ const express = require("express");
 const User = require("../models/User.js");
 const router = express.Router();
 const { ObjectId } = require("mongodb");
-const Questions = require("../models/Question.js");
 
 router.get("/getRequests", async (req, res) => {
   let obj = {};
@@ -105,10 +104,34 @@ router.post("/updateRequests1", async (req, res) => {
       ]).catch((err) => {
         console.log(err);
       });
-      let noofApprovedQuestions = user[0]?.questions?.filter(
+      let noofApprovedQuestions = user[0]?.questions?.map((item, key) => {
+        if (
+          user[0]?.questions?.filter((s) => s.question_id == item?.question_id)
+            ?.length > 1
+        ) {
+          if (
+            user[0]?.questions?.find(
+              (s) =>
+                s.question_id == item?.question_id && s.status == "APPROVED"
+            )
+          ) {
+            return user[0]?.questions?.find(
+              (s) =>
+                s.question_id == item?.question_id && s.status == "APPROVED"
+            );
+          } else {
+            return item;
+          }
+        } else {
+          return item;
+        }
+      });
+
+      let noofApprovedQuestions1 = noofApprovedQuestions?.filter(
         (s) => s.status == "ACTIVE" || s.status == "REJECTED"
       )?.length;
-      if (noofApprovedQuestions == 0) {
+      console.log(noofApprovedQuestions1);
+      if (noofApprovedQuestions1 == 0) {
         let obj = {
           user_id: user_id,
           template_id: template_id,
@@ -116,6 +139,7 @@ router.post("/updateRequests1", async (req, res) => {
         let request = await Requests.find(obj).catch((err) => {
           console.log(err);
         });
+        console.log(request);
         await Requests.updateOne(
           { _id: request[0]?._id },
           { $set: { status: "APPROVED" } }
