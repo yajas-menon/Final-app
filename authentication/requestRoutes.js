@@ -128,7 +128,7 @@ router.post("/updateRequests1", async (req, res) => {
       });
 
       let noofApprovedQuestions1 = noofApprovedQuestions?.filter(
-        (s) => s.status == "ACTIVE" || s.status == "REJECTED"
+        (s) => s.status == "ACTIVE" || s.status == "DECLINED"
       )?.length;
       console.log(noofApprovedQuestions1);
       if (noofApprovedQuestions1 == 0) {
