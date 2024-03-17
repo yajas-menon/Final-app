@@ -88,6 +88,9 @@ router.put("/addAnswers/:id", async (req, res) => {
 
   await Users.findOneAndUpdate({ _id: id }, { $push: { questions: questions } })
     .then(async (data) => {
+      let obj1 = {
+        template_id: req.query.template_id,
+      };
       let obj = {
         status: "PENDING",
         user_id: id,
@@ -97,7 +100,7 @@ router.put("/addAnswers/:id", async (req, res) => {
         createdAt: new Date(),
       };
 
-      await Requests.updateOne(obj, { upsert: true })
+      await Requests.updateOne(obj1, obj, { upsert: true })
         .then((data1) => {
           return res.status(200).json({
             success: true,
@@ -112,6 +115,38 @@ router.put("/addAnswers/:id", async (req, res) => {
             message: "Something went wrong",
           });
         });
+    })
+    .catch((err) => {
+      console.log(err);
+      return res.status(501).json({
+        success: false,
+        error: err,
+        message: "Something went wrong",
+      });
+    });
+});
+
+router.put("/test/:id", async (req, res) => {
+  let id = req.params.id;
+  let obj1 = {
+    template_id: req.query.template_id,
+  };
+  let obj = {
+    status: "PENDING",
+    user_id: id,
+    template_id: req.query.template_id,
+    vendor_id: req.query.vendor_id,
+    requestID: req.query.requestID,
+    createdAt: new Date(),
+  };
+
+  await Requests.updateOne(obj1, obj, { upsert: true })
+    .then((data1) => {
+      console.log(data1);
+      return res.status(200).json({
+        success: true,
+        message: "Successfully Updated Details",
+      });
     })
     .catch((err) => {
       console.log(err);
