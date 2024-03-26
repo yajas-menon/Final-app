@@ -98,6 +98,7 @@ router.put("/addAnswers/:id", async (req, res) => {
         vendor_id: req.query.vendor_id,
         requestID: req.query.requestID,
         createdAt: new Date(),
+        updatedAt: new Date(),
       };
 
       await Requests.updateOne(obj1, obj, { upsert: true })
@@ -138,6 +139,7 @@ router.put("/test/:id", async (req, res) => {
     vendor_id: req.query.vendor_id,
     requestID: req.query.requestID,
     createdAt: new Date(),
+    updatedAt: new Date(),
   };
 
   await Requests.updateOne(obj1, obj, { upsert: true })
@@ -287,4 +289,60 @@ router.post("/uploadFile", async (req, res) => {
   });
 });
 
+router.get("/dashboardApi", async (req, res) => {
+  const totalRequests = await Requests.find({}).catch((err) => {
+    console.log(err);
+  });
+  const approvedRequests = totalRequests?.filter((s) => s.status == "APPROVED");
+  const rejectedRequests = totalRequests?.filter((s) => s.status == "REJECTED");
+
+  const risk_percent = (rejectedRequests / totalRequests) * 100;
+  const approved_percent = (approvedRequests / totalRequests) * 100;
+
+  let monthCount = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  let months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  for (let i of totalRequests) {
+    let month = parseInt(i?.updatedAt.slice(5, 7));
+    monthCount[month - 1]++;
+  }
+
+  let finalIndex = 12;
+  for (let i of monthCount) {
+    if (i == 0) {
+      finalIndex = i;
+      break;
+    }
+  }
+  if (finalIndex < 12) {
+    months = months?.slice(0, finalIndex);
+    monthCount = monthCount?.slice(0, finalIndex);
+  }
+
+  let obj = {
+    risk_percent: risk_percent,
+    approved_percent: approved_percent,
+    months: months,
+    monthCount: monthCount,
+  };
+
+  return res.status(200).json({
+    success: true,
+    message: "Successfully Sent Details",
+    data: obj,
+  });
+});
 module.exports = router;
