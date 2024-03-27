@@ -130,7 +130,7 @@ router.post("/updateRequests1", async (req, res) => {
       let noofApprovedQuestions1 = noofApprovedQuestions?.filter(
         (s) => s.status == "ACTIVE" || s.status == "DECLINED"
       )?.length;
-      console.log(noofApprovedQuestions1);
+
       if (noofApprovedQuestions1 == 0) {
         let obj = {
           user_id: user_id,
@@ -139,10 +139,23 @@ router.post("/updateRequests1", async (req, res) => {
         let request = await Requests.find(obj).catch((err) => {
           console.log(err);
         });
-        console.log(request);
         await Requests.updateOne(
           { _id: request[0]?._id },
           { $set: { status: "APPROVED" } }
+        ).catch((err) => {
+          console.log(err);
+        });
+      } else if (noofApprovedQuestions1 == user[0]?.questions?.length) {
+        let obj = {
+          user_id: user_id,
+          template_id: template_id,
+        };
+        let request = await Requests.find(obj).catch((err) => {
+          console.log(err);
+        });
+        await Requests.updateOne(
+          { _id: request[0]?._id },
+          { $set: { status: "DECLINED" } }
         ).catch((err) => {
           console.log(err);
         });

@@ -294,10 +294,14 @@ router.get("/dashboardApi", async (req, res) => {
     console.log(err);
   });
   const approvedRequests = totalRequests?.filter((s) => s.status == "APPROVED");
-  const rejectedRequests = totalRequests?.filter((s) => s.status == "REJECTED");
+  const rejectedRequests = totalRequests?.filter((s) => s.status == "DECLINED");
 
-  const risk_percent = (rejectedRequests / totalRequests) * 100;
-  const approved_percent = (approvedRequests / totalRequests) * 100;
+  const risk_percent = Math.floor(
+    (rejectedRequests?.length / totalRequests?.length) * 100
+  );
+  const approved_percent = Math.floor(
+    (approvedRequests?.length / totalRequests?.length) * 100
+  );
 
   let monthCount = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   let months = [
@@ -315,28 +319,26 @@ router.get("/dashboardApi", async (req, res) => {
     "December",
   ];
 
+  let finalMonths = [];
+  let finalMonthCount = [];
   for (let i of totalRequests) {
-    let month = parseInt(i?.updatedAt.slice(5, 7));
+    let updatedData = i?.updatedAt.toISOString().split("T")[0];
+    let month = parseInt(updatedData.slice(5, 7));
     monthCount[month - 1]++;
   }
 
-  let finalIndex = 12;
-  for (let i of monthCount) {
-    if (i == 0) {
-      finalIndex = i;
-      break;
+  for (let i = 0; i < monthCount?.length; i++) {
+    if (monthCount[i] != 0) {
+      finalMonthCount.push(monthCount[i]);
+      finalMonths.push(months[i]);
     }
-  }
-  if (finalIndex < 12) {
-    months = months?.slice(0, finalIndex);
-    monthCount = monthCount?.slice(0, finalIndex);
   }
 
   let obj = {
     risk_percent: risk_percent,
     approved_percent: approved_percent,
-    months: months,
-    monthCount: monthCount,
+    months: finalMonths,
+    monthCount: finalMonthCount,
   };
 
   return res.status(200).json({
