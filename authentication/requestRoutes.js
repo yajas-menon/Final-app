@@ -131,6 +131,10 @@ router.post("/updateRequests1", async (req, res) => {
         (s) => s.status == "ACTIVE" || s.status == "DECLINED"
       )?.length;
 
+      let noofApprovedQuestions2 = noofApprovedQuestions?.filter(
+        (s) => s.status == "DECLINED"
+      )?.length;
+
       if (noofApprovedQuestions1 == 0) {
         let obj = {
           user_id: user_id,
@@ -145,7 +149,8 @@ router.post("/updateRequests1", async (req, res) => {
         ).catch((err) => {
           console.log(err);
         });
-      } else if (noofApprovedQuestions1 == user[0]?.questions?.length) {
+      } else if (noofApprovedQuestions2 == user[0]?.questions?.length) {
+        console.log("Hello");
         let obj = {
           user_id: user_id,
           template_id: template_id,
